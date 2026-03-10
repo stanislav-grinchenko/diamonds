@@ -2377,6 +2377,7 @@ files = [
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
+<<<<<<< HEAD
 name = "pytest"
 version = "9.0.2"
 description = "pytest: simple powerful testing with Python"
@@ -2399,6 +2400,8 @@ pygments = ">=2.7.2"
 dev = ["argcomplete", "attrs (>=19.2)", "hypothesis (>=3.56)", "mock", "requests", "setuptools", "xmlschema"]
 
 [[package]]
+=======
+>>>>>>> ca5cc9026c6b1d316e7d6ac0e8f0b2cbc133bed5
 name = "python-dateutil"
 version = "2.9.0.post0"
 description = "Extensions to the standard Python datetime module"
@@ -3301,4 +3304,8 @@ test = ["pytest", "websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11"
+<<<<<<< HEAD
 content-hash = "50c46b6041243612dda94d6f6f960b7646b2a59037a5e7c1bdd74c0cf5eb5914"
+=======
+content-hash = "dfb5e761522323802ddc653bb61de697436ad55d50ade1c3b86e9ef318ca35f2"
+>>>>>>> ca5cc9026c6b1d316e7d6ac0e8f0b2cbc133bed5

@@ -18,6 +18,7 @@ from pathlib import Path
 # Paths
 # ---------------------------------------------------------------------------
 
+<<<<<<< HEAD
 # Root of the repository (two levels above this file: src/diamonds/params.py)
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -61,3 +62,20 @@ if MODEL_REGISTRY == "gcs" and not GCS_BUCKET:
 DEFAULT_MODEL_NAME: str   = os.environ.get("DEFAULT_MODEL_NAME", "RandomForestRegressor")
 DEFAULT_TEST_SIZE: float  = float(os.environ.get("DEFAULT_TEST_SIZE", "0.2"))
 DEFAULT_RANDOM_STATE: int = int(os.environ.get("DEFAULT_RANDOM_STATE", "42"))
+=======
+MODEL_REGISTRY = os.environ.get("MODEL_REGISTRY", "local")
+
+# define model names as constants to avoid typos and ensure consistency across the codebase
+model_name = "Linear_Regression", "Random Forest Regressor", "KNeighborsRegressor", "Support Vector Regressor"
+
+model = {lin, forest, knn, svr}
+
+metrics = {
+    "MAE": {},
+    "MAPE": {},
+    "MSE": {},
+    "R2": {}
+}
+
+
+>>>>>>> ca5cc9026c6b1d316e7d6ac0e8f0b2cbc133bed5
