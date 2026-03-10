@@ -1,113 +1,127 @@
 import pandas as pd
 import seaborn as sns
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer, KNNImputer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
-from sklearn.compose import ColumnTransformer
-# Import other necessary libraries here
+from sklearn.compose import make_column_selector
 
-def keep_not_null(row) :
-    """keep_not_null is a function that checks if there are any null values in the row. 
-    If there are, it returns False, otherwise it returns True.
 
-    Args:
-        row represents a row of the dataframe
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
-    Returns:
-        bool: True if there are no null values in the row, False otherwise
+def keep_not_null(row: pd.Series) -> bool:
+    """Return True if the row contains no zero or NaN values.
+
+    In the diamonds dataset, physical dimensions (x, y, z) and other
+    numeric columns should never legitimately be 0, so zeros are treated
+    as missing/erroneous values alongside NaN.
+
+    Parameters
+    ----------
+    row : pd.Series
+        A single row of the DataFrame.
+
+    Returns
+    -------
+    bool
+        True when neither zeros nor NaN values are found in the row.
     """
-    if 0 in row.values : return False
+    numeric_values = row.select_dtypes(include="number")
+    if numeric_values.isna().any():
+        return False
+    if (numeric_values == 0).any():
+        return False
     return True
 
-def load_data(cache = True) -> pd.DataFrame:
-    """
-    Load the diamonds dataset.
+
+# ---------------------------------------------------------------------------
+# Loading
+# ---------------------------------------------------------------------------
+
+def load_data(cache: bool = True) -> pd.DataFrame:
+    """Load the diamonds dataset from seaborn.
 
     Parameters
     ----------
     cache : bool, optional
-        Whether to cache the dataset, by default True
+        Whether seaborn should cache the downloaded dataset, by default True.
 
     Returns
     -------
     pd.DataFrame
-        The diamonds dataset
+        The raw diamonds dataset.
     """
-    return sns.load_dataset('diamonds')
+    return sns.load_dataset("diamonds", cache=cache)
+
+
+# ---------------------------------------------------------------------------
+# Cleaning
+# ---------------------------------------------------------------------------
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Clean the diamonds dataset.
+    """Remove rows that contain zero or NaN values in any numeric column.
 
     Parameters
     ----------
     df : pd.DataFrame
-        The diamonds dataset
+        The raw diamonds dataset.
 
     Returns
     -------
     pd.DataFrame
-        The cleaned diamonds dataset
+        The cleaned DataFrame with a reset index.
     """
-    return df[df.apply(keep_not_null,axis=1)]
+    mask = df.apply(keep_not_null, axis=1)
+    return df[mask].reset_index(drop=True)
 
-def preprocess_data(df: pd.DataFrame, preprocsessor: Pipeline) -> pd.DataFrame:
-    """
-    Preprocess the diamonds dataset.
+
+# ---------------------------------------------------------------------------
+# Train / test split
+# ---------------------------------------------------------------------------
+
+def create_train_test_X_y(
+    df: pd.DataFrame,
+    test_size: float = 0.2,
+    random_state: int = 42,
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
+    """Split the cleaned dataset into train and test feature/target pairs.
 
     Parameters
     ----------
     df : pd.DataFrame
-        The cleaned diamonds dataset
+        The cleaned diamonds dataset.
+    test_size : float, optional
+        Proportion of the dataset to include in the test split, by default 0.2.
+    random_state : int, optional
+        Random seed for reproducibility, by default 42.
 
     Returns
     -------
-    pd.DataFrame
-        The preprocessed diamonds dataset
+    tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]
+        X_train, X_test, y_train, y_test
     """
-    df_cat = df.select_dtypes(include="category")
-    cat_pipe = Pipeline(
-        [ ("cat_imp",SimpleImputer(strategy="most_frequent"))
-        ,("ohe",OneHotEncoder(drop="first",sparse_output=False))
-        ])
-    num_pipe = Pipeline(
-        [("knn_imp", KNNImputer(n_neighbors=5))
-        ,("scaler", StandardScaler())
-        ])
-    preprocessor = ColumnTransformer(
-        [("numeric",num_pipe, make_column_selector(dtype_include="number"))
-        ,("categorical", cat_pipe, make_column_selector(dtype_exclude="number"))
-        ]).set_output(transform="pandas")
-    
-    
-    
-    
+    if "price" not in df.columns:
+        raise ValueError("DataFrame must contain a 'price' column.")
 
-def create_train_test_X_y(df: pd.DataFrame, test_size: float, random_state: int) ->tuple[pd.DataFrame, pd.Series, pd.DataFrame, pd.Series]:
-    """
-    Create the feature matrix X and target vector y from the diamonds dataset.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        The preprocessed diamonds dataset
-
-    Returns
-    -------
-    (pd.DataFrame, pd.Series, pd.DataFrame, pd.Series)
-        The feature matrix X and target vector y
-    """
     X = df.drop(columns=["price"])
     y = df["price"]
-    X_train, X_test, y_train, y_test  = train_test_split(X,y, test_size=test_size, random_state=random_state)
-    return X_train, y_train, X_test, y_test
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=test_size, random_state=random_state
+    )
+    return X_train, X_test, y_train, y_test
 
 
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     df = load_data()
+    print(f"Raw dataset shape     : {df.shape}")
+
     df_clean = clean_data(df)
-    X_train, y_train, X_test, y_test  = create_train_test_X_y(df_clean)
-    # df_preprocessed = preprocess_data(df_clean)
-    
+    print(f"Cleaned dataset shape : {df_clean.shape}")
+    print(f"Rows removed          : {df.shape[0] - df_clean.shape[0]}")
+
+    X_train, X_test, y_train, y_test = create_train_test_X_y(df_clean)
+    print(f"X_train shape         : {X_train.shape}")
+    print(f"X_test  shape         : {X_test.shape}")
