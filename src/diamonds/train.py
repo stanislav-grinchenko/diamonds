@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from diamonds.data import (load_data, clean_data
                             , preprocess_data, create_X_y)
 from diamonds.model import create_model, train_model, evaluate_model
@@ -5,8 +6,15 @@ from diamonds.registry import save_model, load_model, register_model_mlflow, loa
 
 
 
+=======
+import data
+import model
+import registry
+import params
+import os
+>>>>>>> 7a7695159ff1ae0eca8583123e385a2942e0a0f6
 def train(
-    model_name: str = "baseline",
+    model_name: str = "RandomForestRegressor",
     test_size: float = 0.2,
     random_state: int = 42,
 ) -> None:
@@ -20,6 +28,7 @@ def train(
     - train, evaluate, and save the trained model
     """
     # 1) Data
+<<<<<<< HEAD
     df = load_data()
     df_clean = clean_data(df)
     # 2) Model + preprocessing
@@ -36,6 +45,25 @@ def train(
     register_model_mlflow(model, model_name, parameters={"test_size": test_size, "random_state": random_state}, evaluation_metrics=evaluation_metrics)
     loaded_model = load_registered_model_mlflow(model_name)
     print(loaded_model)
+=======
+    df = data.load_data()
+    df_cleaned = data.clean_data(df)
+    X_test, y_test, X_train, y_train = data.create_train_test_X_y(df_cleaned, test_size, random_state)
+    # 2) Model + preprocessing
+    preproc = model.create_preproc()
+    preproc = model.fit_preproc(preproc, X_train)
+    X_train_transformed = preproc.transform(X_train)
+    X_test_transformed = preproc.transform(X_test)
+    mdl = model.create_model(model_name)
+    mdl = model.train_model(mdl, X_train_transformed, y_train)
+    # 3) Evaluation
+    metrics = model.evaluate_model(mdl, X_test_transformed, y_test)
+    print(metrics)
+    # 4) Persistence
+    path =  os.path.join(params.MODEL_PATH, model_name + ".pkl")
+    registry.save_model(mdl, path)
+
+>>>>>>> 7a7695159ff1ae0eca8583123e385a2942e0a0f6
 
 if __name__ == "__main__":
     train()
